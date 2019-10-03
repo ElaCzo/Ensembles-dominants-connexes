@@ -15,15 +15,17 @@ import java.util.Random;
 public class DefaultTeam {
   private static int numeroDeGraphe = 0 ;
 
+  private boolean estArete(Point a, Point b, int edgeThreshold) {
+    return a.distance(b) < edgeThreshold;
+  }
+
   private ArrayList<Point> voisins(Point p, ArrayList<Point> points, int edgeThreshold) {
     ArrayList<Point> result = new ArrayList<Point>();
 
-    //points.parallelStream().filter(element -> ((Point)element).distance(p)<edgeThreshold);
     for (Point point : points)
-      if (point.distance(p) < edgeThreshold && !point.equals(p))
+      if (estArete(p, point, edgeThreshold) && !point.equals(p))
         result.add(point);
 
-    //return points;
     return result;
   }
 
@@ -39,18 +41,12 @@ public class DefaultTeam {
     return pointsCPY.size() == 0;
   }
 
-  private boolean estArete(Point a, Point b, int edgeThreshold) {
-    return a.distance(b) < edgeThreshold;
-  }
-
   private int degre(Point p, ArrayList<Point> points, int edgeThreshold) {
     return voisins(p, points, edgeThreshold).size();
   }
 
-
   // faire glouton avec paire de noeuds qui couvrent le plus de voisins.
   // faire glouton avec triplé de noeuds qui couvrent le plus de voisins.
-
 
   // prendr ele meilleur ensemble dom et faire des permutations.
 
@@ -89,7 +85,6 @@ public class DefaultTeam {
         Collections.shuffle(reste, new Random(System.nanoTime() + reste.size()));
         p = reste.get(0);
 
-        //p = reste.parallelStream().max(Comparator.comparingInt(element -> voisins(element, reste, edgeThreshold).size())).get();
         if (!couvertureEnsDom.containsAll(voisins(p, points, edgeThreshold)) || !couvertureEnsDom.contains(p)) {
           ensDom.add(p);
           voisins = voisins(p, reste, edgeThreshold);
@@ -139,8 +134,6 @@ public class DefaultTeam {
     voisins = new ArrayList<>();
 
     while (!estEnsembleDominant(ensDom, points, edgeThreshold)) {
-      // p = reste.parallelStream().max(Comparator.comparingInt(element -> voisins(element, reste, edgeThreshold).size())).get();
-      // trouver le point de plus haut degré sans parallelestream.
       p=degreMax(reste, edgeThreshold);
       if (!couvertureEnsDom.containsAll(voisins(p, points, edgeThreshold)) || !couvertureEnsDom.contains(p)) {
         ensDom.add(p);
@@ -173,7 +166,6 @@ public class DefaultTeam {
       ensDom=new ArrayList<Point>();
       couvertureEnsDom=new ArrayList<Point>();
       reste = (ArrayList<Point>) points.clone();
-      voisins=new ArrayList<Point>();
 
       int i = 0;
       while (!estEnsembleDominant(ensDom, points, edgeThreshold)) {
@@ -234,21 +226,6 @@ public class DefaultTeam {
     return result;
   }
 
-  public void writePoints(ArrayList<Point> points, String filename, String methodname){
-    try{
-      BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
-      int score = points.size();
-      writer.write(methodname + " " + score+"\n");
-      for(Point p : points){
-        writer.write(p.x + " " + p.y+"\n");
-      }
-      writer.flush();
-      writer.close();
-    }catch(IOException ioe){
-      ioe.printStackTrace();
-    }
-  }
-
   public int score(String filename){
     try {
       Path file = Paths.get(filename);
@@ -270,6 +247,21 @@ public class DefaultTeam {
       e.printStackTrace();
     }
     return -1;
+  }
+
+  public void writePoints(ArrayList<Point> points, String filename, String methodname){
+    try{
+      BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
+      int score = points.size();
+      writer.write(methodname + " " + score+"\n");
+      for(Point p : points){
+        writer.write(p.x + " " + p.y+"\n");
+      }
+      writer.flush();
+      writer.close();
+    }catch(IOException ioe){
+      ioe.printStackTrace();
+    }
   }
 
   public ArrayList<Point> readPoints(String filename){
