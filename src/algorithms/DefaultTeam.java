@@ -54,16 +54,23 @@ public class DefaultTeam {
 
   // prendr ele meilleur ensemble dom et faire des permutations.
 
-  public ArrayList<Point> supprimePoints(ArrayList<Point> points, ArrayList<Point> ensembleDominant, int edgeThreshold) {
+  public ArrayList<Point> supprime1Point(ArrayList<Point> ensembleDominant, ArrayList<Point> points, int edgeThreshold) {
     ArrayList<Point> result = (ArrayList<Point>) ensembleDominant.clone();
-    for (Point p : ensembleDominant) {
-      result.remove(p);
-      if (!estEnsembleDominant(result, points, edgeThreshold)) result.add(p);
+    ArrayList<Point> startSet = (ArrayList<Point>)result.clone();
+
+    while(startSet.size()>result.size()) {
+      startSet=(ArrayList<Point>)result.clone();
+      for (Point p : startSet) {
+        result.remove(p);
+        if (!estEnsembleDominant(result, points, edgeThreshold))
+          result.add(p);
+      }
     }
+
     return result;
   }
 
-  private ArrayList<Point> methodeRandom(ArrayList<Point> points, int edgeThreshold){
+  private ArrayList<Point> methode2(ArrayList<Point> points, int edgeThreshold){
     ArrayList<Point> ensDom =  new ArrayList<Point>();
     ArrayList<Point> couvertureEnsDom =  new ArrayList<Point>();
     ArrayList<Point> reste = (ArrayList<Point>) points.clone();
@@ -117,7 +124,7 @@ public class DefaultTeam {
   // ordre aléatoire, mettre 1e
 
   /* Methode principale :  enlever les noeuds de plus haut degré au début. */
-  private ArrayList<Point> methodePrincipale(ArrayList<Point> points, int edgeThreshold){
+  private ArrayList<Point> methode1(ArrayList<Point> points, int edgeThreshold){
     ArrayList<Point> ensDom =  new ArrayList<Point>();
     ArrayList<Point> couvertureEnsDom =  new ArrayList<Point>();
     ArrayList<Point> reste = (ArrayList<Point>) points.clone();
@@ -162,7 +169,7 @@ public class DefaultTeam {
     ArrayList<Point> poubelle = new ArrayList<Point>();
     Point p;
 
-    for (int t=0; t<100; t++) {
+    for (int t=0; t<30; t++) {
       ensDom=new ArrayList<Point>();
       couvertureEnsDom=new ArrayList<Point>();
       reste = (ArrayList<Point>) points.clone();
@@ -198,7 +205,7 @@ public class DefaultTeam {
         reste.remove(p);
       }
 
-      System.out.println(numeroDeGraphe+") RES : "+result.size()+ " CURR : " +ensDom.size()+ " ITER :" +t);
+      //System.out.println(numeroDeGraphe+") RES : "+result.size()+ " CURR : " +ensDom.size()+ " ITER :" +t);
       if (result.size() > ensDom.size())
         result = ensDom;
     }
@@ -207,18 +214,17 @@ public class DefaultTeam {
     if(score == -1 || score > ensDom.size())
       writePoints(ensDom, "graphe"+numeroDeGraphe, "methode3");
 
+    if(!estEnsembleDominant(ensDom, points, edgeThreshold))
+      System.out.println("NOT DOM !!!");
     return result;
   }
-
-  /*private ArrayList<Point> localSearch(){
-
-  }*/
 
   public ArrayList<Point> calculDominatingSet(ArrayList<Point> points, int edgeThreshold) {
     ArrayList<Point> result = (ArrayList<Point>)points.clone();
 
     result = methode3(points, edgeThreshold);
 
+    supprime1Point(result, points, edgeThreshold);
     // if (false) result = readFromFile("output0.points");
     // else saveToFile("output",result);
     //<<<<< REMOVE
