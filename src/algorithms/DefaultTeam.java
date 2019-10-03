@@ -50,7 +50,7 @@ public class DefaultTeam {
 
   // prendr ele meilleur ensemble dom et faire des permutations.
 
-  public ArrayList<Point> supprime1Point(ArrayList<Point> ensembleDominant, ArrayList<Point> points, int edgeThreshold) {
+  private ArrayList<Point> supprime1Point(ArrayList<Point> ensembleDominant, ArrayList<Point> points, int edgeThreshold) {
     ArrayList<Point> result = (ArrayList<Point>) ensembleDominant.clone();
     ArrayList<Point> startSet = (ArrayList<Point>)result.clone();
 
@@ -64,6 +64,99 @@ public class DefaultTeam {
     }
 
     return result;
+  }
+
+  private void localSearch21(ArrayList<Point> ensDom, ArrayList<Point> points, int edgeThreshold){
+    ArrayList<Point> reste = (ArrayList<Point>)points.clone();
+    ArrayList<Point> a = (ArrayList<Point>)points.clone();
+    ArrayList<Point> nonDomine = new ArrayList<>();
+    ArrayList<Point> ensDomDeK = new ArrayList<>();
+    ArrayList<Point> voisins = new ArrayList<>();
+
+    reste.removeAll(ensDom);
+
+    Point pi, pj, pk;
+    boolean pointADominer, passerAuxPointsSuivants=false;
+    for(int i = ensDom.size() - 1 ; i > 0 ; i--) {
+      passerAuxPointsSuivants=false;
+
+      pi=ensDom.get(i);
+
+      // si un des voisins n'est pas de voisin qui est toujours dans ensDom, il faut le dominer avec le nouveau point
+      /*pointADominer = true;
+      for(Point v : voisins) {
+        if(pointADominer=false)
+          break;
+        for (Point v2v : voisins(v, points, edgeThreshold)) {
+          if (ensDom.contains(v2v))
+            pointADominer = false;
+        }
+      }
+      if (pointADominer)
+        nonDomine.add(pi);*/
+
+      ensDom.remove(pi);
+
+      for (int j = i-1; j > 0; j--) {
+        pj = ensDom.get(j);
+        if (pj.distance(pi)>edgeThreshold*4)
+          continue;
+
+        //voisins = voisins(pj, points, edgeThreshold);
+        // si un des voisins n'est pas de voisin qui est toujours dans ensDom, il faut le dominer avec le nouveau point
+        /*pointADominer = true;
+        for (Point v : voisins) {
+          if (pointADominer = false)
+            break;
+          for (Point v2v : voisins(v, points, edgeThreshold)) {
+            if (ensDom.contains(v2v))
+              pointADominer = false;
+          }
+        }
+        if(pointADominer)
+          nonDomine.add(pj);*/
+
+        ensDom.remove(pj);
+
+        for (int k = reste.size() - 1; k > 0; k--) {
+          //ensDomDeK.clear();
+          pk = reste.get(k);
+          if(pk.distance(pi)>2*edgeThreshold || pk.distance(pj)>2*edgeThreshold)
+            continue;
+          /*ensDomDeK.addAll(voisins(pk, points, edgeThreshold));
+          ensDomDeK.add(pk);*/
+
+          ensDom.add(pk);
+
+          if(estEnsembleDominant(ensDom, points, edgeThreshold)) {
+            passerAuxPointsSuivants = true;
+            System.out.println(pk+" remplace "+pi +" et "+pj);
+            break;
+          }
+
+          ensDom.remove(pk);
+          // si on peut remplacer les 2 points par celui-là car tous les points finaux seront dominés quand même :
+          /*if(ensDomDeK.containsAll(nonDomine)) {
+            System.out.println("On a vérifié si c'était ok "+pi+" "+pj + " "+pk);
+
+            ensDom.remove(pi);
+            ensDom.remove(pj);
+            ensDom.add(pk);
+            reste.remove(pk);
+            passerAuxPointsSuivants=true;
+            if(estEnsembleDominant(ensDom, points, edgeThreshold))
+              System.out.println("C'est vraiment ok.");
+            break;
+          }*/
+        }
+        if(passerAuxPointsSuivants)
+          break;
+        ensDom.add(pj);
+      }
+      if(passerAuxPointsSuivants)
+        continue;
+      ensDom.add(pi);
+    }
   }
 
   private ArrayList<Point> methode2(ArrayList<Point> points, int edgeThreshold){
@@ -176,7 +269,7 @@ public class DefaultTeam {
         }
         p = degreMax(reste, edgeThreshold);
         if (new Random(System.nanoTime()).nextInt(10) < 5 && i < 10) {
-          reste.remove(p); // vérifier s'il faut pas ajouter autre chose à d'autres ensemble.
+          reste.remove(p);
 
           if(reste.isEmpty()) {
             reste.addAll(poubelle);
@@ -217,6 +310,7 @@ public class DefaultTeam {
     result = methode3(points, edgeThreshold);
 
     supprime1Point(result, points, edgeThreshold);
+    localSearch21(result, points, edgeThreshold);
     // if (false) result = readFromFile("output0.points");
     // else saveToFile("output",result);
     //<<<<< REMOVE
