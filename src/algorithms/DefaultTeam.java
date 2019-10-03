@@ -74,7 +74,7 @@ public class DefaultTeam {
 
     Point pi, pj, pk;
     boolean pointADominer, passerAuxPointsSuivants=false;
-    for(int i = ensDom.size() - 1 ; i > 0 ; i--) {
+    for(int i = ensDom.size() - 1 ; i >= 0 ; i--) {
       passerAuxPointsSuivants=false;
 
       pi=ensDom.get(i);
@@ -94,7 +94,7 @@ public class DefaultTeam {
 
       ensDom.remove(pi);
 
-      for (int j = i-1; j > 0; j--) {
+      for (int j = i-1; j >= 0; j--) {
         pj = ensDom.get(j);
         if (pj.distance(pi)>edgeThreshold*4)
           continue;
@@ -115,7 +115,7 @@ public class DefaultTeam {
 
         ensDom.remove(pj);
 
-        for (int k = reste.size() - 1; k > 0; k--) {
+        for (int k = reste.size() - 1; k >= 0; k--) {
           //ensDomDeK.clear();
           pk = reste.get(k);
           if(pk.distance(pi)>2*edgeThreshold || pk.distance(pj)>2*edgeThreshold)
@@ -162,12 +162,85 @@ public class DefaultTeam {
 
     Point ph, pi, pj, pk, pl;
     boolean passerAuxPointsSuivants;
+    for(int i = ensDom.size() - 1 ; i >= 0 ; i--) {
+      passerAuxPointsSuivants=false;
+
+      pi=ensDom.get(i);
+
+      ensDom.remove(pi);
+
+      for (int j = i-1; j >=0 ; j--) {
+        pj = ensDom.get(j);
+
+        if (pj.distance(pi)>edgeThreshold*4)//6
+          continue;
+
+        ensDom.remove(pj);
+        for (int h = j-1; h >=0 ; h--) {
+          ph = ensDom.get(h);
+
+          if (ph.distance(pi)>edgeThreshold*4 || ph.distance(pj)>edgeThreshold*4) //4
+            continue;
+
+          ensDom.remove(ph);
+
+          for (int k = reste.size() - 1; k >=0 ; k--) {
+            pk = reste.get(k);
+            if (pk.distance(pi) > 2 * edgeThreshold || pk.distance(pj) > 2 * edgeThreshold
+                    || pk.distance(ph) > 2 * edgeThreshold)
+              continue;
+
+            ensDom.add(pk);
+
+            for (int l = k - 1; l >= 0; l--) {
+              pl = reste.get(l);
+              if (pl.distance(pi) > 2 * edgeThreshold || pl.distance(pj) > 2 * edgeThreshold
+                      || pl.distance(ph) > 2 * edgeThreshold)
+                continue;
+
+              ensDom.add(pl);
+
+              if (estEnsembleDominant(ensDom, points, edgeThreshold)) {
+                passerAuxPointsSuivants = true;
+                System.out.println(pk + " et "+ pl + " remplacent " + pi + ", " + pj + " et "+ph);
+                break;
+              }
+
+              ensDom.remove(pl);
+            }
+
+            if(passerAuxPointsSuivants)
+              break;
+            ensDom.remove(pk);
+          }
+          if(passerAuxPointsSuivants)
+            break;
+          ensDom.add(ph);
+        }
+        if(passerAuxPointsSuivants)
+          break;
+        ensDom.add(pj);
+      }
+      if(passerAuxPointsSuivants)
+        continue;
+      ensDom.add(pi);
+    }
+  }
+
+  /*private void localSearch43(ArrayList<Point> ensDom, ArrayList<Point> points, int edgeThreshold){
+    ArrayList<Point> reste = (ArrayList<Point>)points.clone();
+    reste.removeAll(ensDom);
+
+    Point ph, pi, pj, pk, pl;
+    boolean passerAuxPointsSuivants;
     for(int i = ensDom.size() - 1 ; i > 0 ; i--) {
       passerAuxPointsSuivants=false;
 
       pi=ensDom.get(i);
 
       ensDom.remove(pi);
+
+      ensDom.
 
       for (int j = i-1; j > 0; j--) {
         pj = ensDom.get(j);
@@ -225,7 +298,7 @@ public class DefaultTeam {
         continue;
       ensDom.add(pi);
     }
-  }
+  }*/
 
   private ArrayList<Point> methode2(ArrayList<Point> points, int edgeThreshold){
     ArrayList<Point> ensDom =  new ArrayList<Point>();
@@ -323,7 +396,7 @@ public class DefaultTeam {
     ArrayList<Point> poubelle = new ArrayList<Point>();
     Point p;
 
-    for (int t=0; t<30; t++) {
+    for (int t=0; t<100; t++) {
       ensDom=new ArrayList<Point>();
       couvertureEnsDom=new ArrayList<Point>();
       reste = (ArrayList<Point>) points.clone();
@@ -336,7 +409,8 @@ public class DefaultTeam {
           poubelle=new ArrayList<Point>();
         }
         p = degreMax(reste, edgeThreshold);
-        if (new Random(System.nanoTime()).nextInt(10) < 5 && i < 10) {
+
+        if (!reste.isEmpty() && new Random(System.nanoTime()).nextInt(10) < 5 && i < 10) {
           reste.remove(p);
 
           if(reste.isEmpty()) {
@@ -365,6 +439,51 @@ public class DefaultTeam {
 
     return result;
   }
+
+  /*private ArrayList<Point> methode4(ArrayList<Point> points, int edgeThreshold){
+    ArrayList<Point> ensDom =  new ArrayList<Point>();
+    ArrayList<Point> couvertureEnsDom =  new ArrayList<Point>();
+    ArrayList<Point> reste = (ArrayList<Point>) points.clone();
+    ArrayList<Point> voisins = new ArrayList<>();
+    ArrayList<Point> result = (ArrayList<Point>) points.clone();
+
+    ArrayList<Point> poubelle = new ArrayList<Point>();
+    Point p;
+
+    for (int t=0; t<50; t++) {
+      ensDom=new ArrayList<Point>();
+      couvertureEnsDom=new ArrayList<Point>();
+      reste = (ArrayList<Point>) points.clone();
+
+      int i = 0;
+      while (!estEnsembleDominant(ensDom, points, edgeThreshold)) {
+        i++;
+        if(reste.isEmpty()) {
+          reste.addAll(poubelle);
+          poubelle=new ArrayList<Point>();
+        }
+        p = degreMin(reste, edgeThreshold);
+
+        for(int j=reste.size()-1; j >= 0; j++)
+          ;
+        if (!couvertureEnsDom.containsAll(voisins(p, points, edgeThreshold)) || !couvertureEnsDom.contains(p)) {
+          ensDom.add(p);
+          voisins = voisins(p, reste, edgeThreshold);
+          couvertureEnsDom.addAll(voisins);
+          couvertureEnsDom.add(p);
+          reste.removeAll(voisins);
+        }
+
+        reste.remove(p);
+      }
+
+      //System.out.println(numeroDeGraphe+") RES : "+result.size()+ " CURR : " +ensDom.size()+ " ITER :" +t);
+      if (result.size() > ensDom.size())
+        result = ensDom;
+    }
+
+    return result;
+  }*/
 
   public ArrayList<Point> calculDominatingSet(ArrayList<Point> points, int edgeThreshold) {
     ArrayList<Point> result = (ArrayList<Point>)points.clone();
@@ -401,7 +520,6 @@ public class DefaultTeam {
     // if (false) result = readFromFile("output0.points");
     // else saveToFile("output",result);
     //<<<<< REMOVE
-
 
     numeroDeGraphe++;
     return result;
