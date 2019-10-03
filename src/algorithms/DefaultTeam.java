@@ -391,6 +391,7 @@ public class DefaultTeam {
     } while(tmp.size()!=result.size());
 
     do {
+      tmp = (ArrayList<Point>)result.clone();
       localSearch32(result, points, edgeThreshold);
       System.out.println("3 On retire "+(tmp.size()-result.size()));
     } while(tmp.size()!=result.size());
