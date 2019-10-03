@@ -163,7 +163,6 @@ public class DefaultTeam {
     Point ph, pi, pj, pk, pl;
     boolean passerAuxPointsSuivants;
     for(int i = ensDom.size() - 1 ; i > 0 ; i--) {
-      System.out.println("i="+i);
       passerAuxPointsSuivants=false;
 
       pi=ensDom.get(i);
@@ -200,8 +199,6 @@ public class DefaultTeam {
                 continue;
 
               ensDom.add(pl);
-
-              System.out.println("On teste.");
 
               if (estEnsembleDominant(ensDom, points, edgeThreshold)) {
                 passerAuxPointsSuivants = true;
@@ -384,16 +381,18 @@ public class DefaultTeam {
     do {
       tmp = (ArrayList<Point>)result.clone();
       supprime1Point(result, points, edgeThreshold);
-
+      System.out.println("1 On retire "+(tmp.size()-result.size()));
     } while(tmp.size()!=result.size());
 
     do {
       tmp = (ArrayList<Point>)result.clone();
       localSearch21(result, points, edgeThreshold);
+      System.out.println("2 On retire "+(tmp.size()-result.size()));
     } while(tmp.size()!=result.size());
 
     do {
       localSearch32(result, points, edgeThreshold);
+      System.out.println("3 On retire "+(tmp.size()-result.size()));
     } while(tmp.size()!=result.size());
 
     // if (false) result = readFromFile("output0.points");
