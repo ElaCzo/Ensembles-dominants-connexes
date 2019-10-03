@@ -50,20 +50,17 @@ public class DefaultTeam {
 
   // prendr ele meilleur ensemble dom et faire des permutations.
 
-  private ArrayList<Point> supprime1Point(ArrayList<Point> ensembleDominant, ArrayList<Point> points, int edgeThreshold) {
-    ArrayList<Point> result = (ArrayList<Point>) ensembleDominant.clone();
-    ArrayList<Point> startSet = (ArrayList<Point>)result.clone();
+  private void supprime1Point(ArrayList<Point> ensembleDominant, ArrayList<Point> points, int edgeThreshold) {
+    ArrayList<Point> startSet = (ArrayList<Point>)ensembleDominant.clone();
 
-    while(startSet.size()>result.size()) {
-      startSet=(ArrayList<Point>)result.clone();
+    while(startSet.size()>ensembleDominant.size()) {
+      startSet=(ArrayList<Point>)ensembleDominant.clone();
       for (Point p : startSet) {
-        result.remove(p);
-        if (!estEnsembleDominant(result, points, edgeThreshold))
-          result.add(p);
+        ensembleDominant.remove(p);
+        if (!estEnsembleDominant(ensembleDominant, points, edgeThreshold))
+          ensembleDominant.add(p);
       }
     }
-
-    return result;
   }
 
   private void localSearch21(ArrayList<Point> ensDom, ArrayList<Point> points, int edgeThreshold){
@@ -158,6 +155,73 @@ public class DefaultTeam {
       ensDom.add(pi);
     }
   }
+
+  private void localSearch32(ArrayList<Point> ensDom, ArrayList<Point> points, int edgeThreshold){
+    ArrayList<Point> reste = (ArrayList<Point>)points.clone();
+    reste.removeAll(ensDom);
+
+    Point ph, pi, pj, pk, pl;
+    boolean passerAuxPointsSuivants;
+    for(int i = ensDom.size() - 1 ; i > 0 ; i--) {
+      passerAuxPointsSuivants=false;
+
+      pi=ensDom.get(i);
+
+      ensDom.remove(pi);
+
+      for (int j = i-1; j > 0; j--) {
+        pj = ensDom.get(j);
+
+        ensDom.remove(pj);
+        for (int h = j-1; h > 0; h--) {
+          ph = ensDom.get(h);
+
+          ensDom.remove(ph);
+
+          for (int k = reste.size() - 1; k > 0; k--) {
+            pk = reste.get(k);
+            if ((pk.distance(pi) > 2 * edgeThreshold && pk.distance(pj) > 2 * edgeThreshold) ||
+                    (pk.distance(pj) > 2 * edgeThreshold && pk.distance(ph) > 2 * edgeThreshold) ||
+                    (pk.distance(pi) > 2 * edgeThreshold && pk.distance(ph) > 2 * edgeThreshold))
+              continue;
+
+            ensDom.add(pk);
+
+            for (int l = k - 1; l > 0; l--) {
+              pl = reste.get(l);
+              if ((pl.distance(pi) > 2 * edgeThreshold && pl.distance(pj) > 2 * edgeThreshold) ||
+                      (pl.distance(pj) > 2 * edgeThreshold && pl.distance(ph) > 2 * edgeThreshold) ||
+                      (pl.distance(pi) > 2 * edgeThreshold && pl.distance(ph) > 2 * edgeThreshold))
+                continue;
+
+              ensDom.add(pl);
+
+              if (estEnsembleDominant(ensDom, points, edgeThreshold)) {
+                passerAuxPointsSuivants = true;
+                System.out.println(pk + " et "+ pl + " remplacent " + pi + ", " + pj + " et "+ph);
+                break;
+              }
+
+              ensDom.remove(pl);
+            }
+
+          if(passerAuxPointsSuivants)
+            break;
+          ensDom.remove(pk);
+        }
+        if(passerAuxPointsSuivants)
+          break;
+        ensDom.add(ph);
+      }
+      if(passerAuxPointsSuivants)
+        break;
+      ensDom.add(pj);
+    }
+    if(passerAuxPointsSuivants)
+      continue;
+    ensDom.add(pi);
+  }
+}
 
   private ArrayList<Point> methode2(ArrayList<Point> points, int edgeThreshold){
     ArrayList<Point> ensDom =  new ArrayList<Point>();
@@ -311,6 +375,7 @@ public class DefaultTeam {
 
     supprime1Point(result, points, edgeThreshold);
     localSearch21(result, points, edgeThreshold);
+    localSearch32(result, points, edgeThreshold);
     // if (false) result = readFromFile("output0.points");
     // else saveToFile("output",result);
     //<<<<< REMOVE
