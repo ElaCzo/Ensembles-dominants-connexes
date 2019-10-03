@@ -363,12 +363,6 @@ public class DefaultTeam {
         result = ensDom;
     }
 
-    int score = score("graphe"+numeroDeGraphe);
-    if(score == -1 || score > ensDom.size())
-      writePoints(ensDom, "graphe"+numeroDeGraphe, "methode3");
-
-    if(!estEnsembleDominant(ensDom, points, edgeThreshold))
-      System.out.println("NOT DOM !!!");
     return result;
   }
 
@@ -395,6 +389,14 @@ public class DefaultTeam {
       localSearch32(result, points, edgeThreshold);
       System.out.println("3 On retire "+(tmp.size()-result.size()));
     } while(tmp.size()!=result.size());
+
+
+    int score = score("graphe"+numeroDeGraphe);
+    if(score == -1 || score > result.size())
+      writePoints(result, "graphe"+numeroDeGraphe, "methode3");
+
+    if(!estEnsembleDominant(result, points, edgeThreshold))
+      System.out.println("NOT DOM !!!");
 
     // if (false) result = readFromFile("output0.points");
     // else saveToFile("output",result);
