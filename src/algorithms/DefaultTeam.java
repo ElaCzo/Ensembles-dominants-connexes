@@ -196,7 +196,7 @@ public class DefaultTeam {
             for (int l = k - 1; l > 0; l--) {
               pl = reste.get(l);
               if (pl.distance(pi) > 2 * edgeThreshold || pl.distance(pj) > 2 * edgeThreshold
-                || pl.distance(ph) > 2 * edgeThreshold)
+                      || pl.distance(ph) > 2 * edgeThreshold)
                 continue;
 
               ensDom.add(pl);
@@ -212,23 +212,23 @@ public class DefaultTeam {
               ensDom.remove(pl);
             }
 
+            if(passerAuxPointsSuivants)
+              break;
+            ensDom.remove(pk);
+          }
           if(passerAuxPointsSuivants)
             break;
-          ensDom.remove(pk);
+          ensDom.add(ph);
         }
         if(passerAuxPointsSuivants)
           break;
-        ensDom.add(ph);
+        ensDom.add(pj);
       }
       if(passerAuxPointsSuivants)
-        break;
-      ensDom.add(pj);
+        continue;
+      ensDom.add(pi);
     }
-    if(passerAuxPointsSuivants)
-      continue;
-    ensDom.add(pi);
   }
-}
 
   private ArrayList<Point> methode2(ArrayList<Point> points, int edgeThreshold){
     ArrayList<Point> ensDom =  new ArrayList<Point>();
@@ -380,9 +380,22 @@ public class DefaultTeam {
 
     result = methode3(points, edgeThreshold);
 
-    supprime1Point(result, points, edgeThreshold);
-    localSearch21(result, points, edgeThreshold);
-    localSearch32(result, points, edgeThreshold);
+    ArrayList<Point> tmp;
+    do {
+      tmp = (ArrayList<Point>)result.clone();
+      supprime1Point(result, points, edgeThreshold);
+
+    } while(tmp.size()!=result.size());
+
+    do {
+      tmp = (ArrayList<Point>)result.clone();
+      localSearch21(result, points, edgeThreshold);
+    } while(tmp.size()!=result.size());
+
+    do {
+      localSearch32(result, points, edgeThreshold);
+    } while(tmp.size()!=result.size());
+
     // if (false) result = readFromFile("output0.points");
     // else saveToFile("output",result);
     //<<<<< REMOVE
