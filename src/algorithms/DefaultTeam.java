@@ -163,6 +163,7 @@ public class DefaultTeam {
     Point ph, pi, pj, pk, pl;
     boolean passerAuxPointsSuivants;
     for(int i = ensDom.size() - 1 ; i > 0 ; i--) {
+      System.out.println("i="+i);
       passerAuxPointsSuivants=false;
 
       pi=ensDom.get(i);
@@ -172,29 +173,35 @@ public class DefaultTeam {
       for (int j = i-1; j > 0; j--) {
         pj = ensDom.get(j);
 
+        if (pj.distance(pi)>edgeThreshold*4)//6
+          continue;
+
         ensDom.remove(pj);
         for (int h = j-1; h > 0; h--) {
           ph = ensDom.get(h);
+
+          if (ph.distance(pi)>edgeThreshold*4 || ph.distance(pj)>edgeThreshold*4) //4
+            continue;
 
           ensDom.remove(ph);
 
           for (int k = reste.size() - 1; k > 0; k--) {
             pk = reste.get(k);
-            if ((pk.distance(pi) > 2 * edgeThreshold && pk.distance(pj) > 2 * edgeThreshold) ||
-                    (pk.distance(pj) > 2 * edgeThreshold && pk.distance(ph) > 2 * edgeThreshold) ||
-                    (pk.distance(pi) > 2 * edgeThreshold && pk.distance(ph) > 2 * edgeThreshold))
+            if (pk.distance(pi) > 2 * edgeThreshold || pk.distance(pj) > 2 * edgeThreshold
+                    || pk.distance(ph) > 2 * edgeThreshold)
               continue;
 
             ensDom.add(pk);
 
             for (int l = k - 1; l > 0; l--) {
               pl = reste.get(l);
-              if ((pl.distance(pi) > 2 * edgeThreshold && pl.distance(pj) > 2 * edgeThreshold) ||
-                      (pl.distance(pj) > 2 * edgeThreshold && pl.distance(ph) > 2 * edgeThreshold) ||
-                      (pl.distance(pi) > 2 * edgeThreshold && pl.distance(ph) > 2 * edgeThreshold))
+              if (pl.distance(pi) > 2 * edgeThreshold || pl.distance(pj) > 2 * edgeThreshold
+                || pl.distance(ph) > 2 * edgeThreshold)
                 continue;
 
               ensDom.add(pl);
+
+              System.out.println("On teste.");
 
               if (estEnsembleDominant(ensDom, points, edgeThreshold)) {
                 passerAuxPointsSuivants = true;
