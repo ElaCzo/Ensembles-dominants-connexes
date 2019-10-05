@@ -358,6 +358,7 @@ public class DefaultTeam {
         res=p;
       }
 
+    assert res!=null;
     return res;
   }
 
@@ -477,6 +478,7 @@ public class DefaultTeam {
 
     Point p, ptmp;
 
+    // pr chaque point de reste, compter le nombe de pint de ensdom qu'il touche, il faut le moins possible qu'il soit trop près de ensdom (max 2*edgthreshold). Le faire pour tous les points de reste.
     for (int t=0; t<100; t++) {
       ensDom=new ArrayList<Point>();
       couvertureEnsDom=new ArrayList<Point>();
@@ -518,8 +520,7 @@ public class DefaultTeam {
     ArrayList<Point> voisins = new ArrayList<>();
     ArrayList<Point> result = (ArrayList<Point>) points.clone();
 
-    ArrayList<Point> poubelle = new ArrayList<Point>();
-    Point p, q;
+    Point p, q, qtmp;
 
     for (int t=0; t<100; t++) {
       ensDom=new ArrayList<Point>();
@@ -547,20 +548,33 @@ public class DefaultTeam {
       int i = 0;
       while (!estEnsembleDominant(ensDom, points, edgeThreshold)) {
         i++;
-        if (reste.isEmpty()) {
-          reste.addAll(poubelle);
-          poubelle = new ArrayList<Point>();
-        }
+
         p = degreMin(reste, edgeThreshold);
 
+        // !! vérifier si p est pas de degré 0 !!! pour les autres méthodes !!! :
+        if(degre(p, reste, edgeThreshold)==0) {
+          ensDom.add(p);
+          couvertureEnsDom.add(p);
+          reste.remove(p);
+          continue;
+        }
+
         voisins = voisins(p, reste, edgeThreshold);
-        System.out.println(voisins.size());
+
         q = degreMax(voisins, reste, edgeThreshold);
 
+        /*if (reste.size()>1 && new Random(System.nanoTime()).nextInt(10) < 5 && i < 100) {
+          qtmp=q;
+          reste.remove(q);
+          q = degreMax(reste, edgeThreshold);
+          reste.add(qtmp);
+        }*/
+
         ensDom.add(q);
-        couvertureEnsDom.addAll(voisins(q, reste, edgeThreshold));
+        couvertureEnsDom.addAll(voisins=voisins(q, reste, edgeThreshold));
         couvertureEnsDom.add(q);
-        reste.removeAll(couvertureEnsDom);
+        reste.removeAll(voisins);
+        reste.remove(q);
       }
 
       //System.out.println(numeroDeGraphe+") RES : "+result.size()+ " CURR : " +ensDom.size()+ " ITER :" +t);
@@ -618,11 +632,57 @@ public class DefaultTeam {
     return result;
   }
 
+  /* Methode principale :  enlever les noeuds de plus haut degré au début en random sur les plus hauts noeuds. . */
+  private ArrayList<Point> methode6(ArrayList<Point> points, int edgeThreshold){
+    ArrayList<Point> ensDom =  new ArrayList<Point>();
+    ArrayList<Point> couvertureEnsDom =  new ArrayList<Point>();
+    ArrayList<Point> reste = (ArrayList<Point>) points.clone();
+    ArrayList<Point> voisins = new ArrayList<>();
+    ArrayList<Point> result = (ArrayList<Point>) points.clone();
+
+    Point p, ptmp;
+
+    // pr chaque point de reste, compter le nombe de pint de ensdom qu'il touche, il faut le moins possible qu'il soit trop près de ensdom (max 2*edgthreshold). Le faire pour tous les points de reste.
+    for (int t=0; t<100; t++) {
+      ensDom=new ArrayList<Point>();
+      couvertureEnsDom=new ArrayList<Point>();
+      reste = (ArrayList<Point>) points.clone();
+
+      int i = 0;
+      while (!estEnsembleDominant(ensDom, points, edgeThreshold)) {
+        i++;
+
+        p = degreMax(reste, edgeThreshold);
+
+        if (reste.size()>1 && new Random(System.nanoTime()).nextInt(10) < 5 && i < 100) {
+          ptmp=p;
+          reste.remove(p);
+          p = degreMax(reste, edgeThreshold);
+          reste.add(ptmp);
+        }
+
+        ensDom.add(p);
+        voisins = voisins(p, reste, edgeThreshold);
+        reste.removeAll(voisins);
+        reste.remove(p);
+        couvertureEnsDom.addAll(voisins);
+        couvertureEnsDom.add(p);
+      }
+
+      //System.out.println(numeroDeGraphe+") RES : "+result.size()+ " CURR : " +ensDom.size()+ " ITER :" +t);
+      if (result.size() > ensDom.size())
+        result = ensDom;
+    }
+
+    return result;
+  }
+
   public ArrayList<Point> calculDominatingSet(ArrayList<Point> points, int edgeThreshold) {
     ArrayList<Point> result = (ArrayList<Point>)points.clone();
 
     //result = methode3(points, edgeThreshold);
-    result = methode33(points, edgeThreshold);
+    //result = methode33(points, edgeThreshold);
+    result = methode5(points, edgeThreshold);
 
     ArrayList<Point> tmp;
     /*do {
@@ -646,7 +706,7 @@ public class DefaultTeam {
 
     int score = score("graphe"+numeroDeGraphe);
     if(score == -1 || score > result.size())
-      writePoints(result, "graphe"+numeroDeGraphe, "methode3");
+      writePoints(result, "graphe"+numeroDeGraphe, "methode5");
 
     if(!estEnsembleDominant(result, points, edgeThreshold))
       System.out.println("NOT DOM !!!");
