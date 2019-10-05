@@ -347,6 +347,30 @@ public class DefaultTeam {
     return res;
   }
 
+  Point degreMax(ArrayList<Point> liste, ArrayList<Point> ensemble, int edgeThreshold){
+    Point res=null;
+    int dres=-1, d;
+    for(Point p : liste)
+      if(dres<(d=degre(p, ensemble, edgeThreshold)) || dres==-1) {
+        dres=d;
+        res=p;
+      }
+
+    return res;
+  }
+
+  Point degreMin(ArrayList<Point> points, int edgeThreshold){
+    Point res=null;
+    int dres=-1, d;
+    for(Point p : points)
+      if(dres>(d=degre(p, points, edgeThreshold)) || dres==-1) {
+        dres=d;
+        res=p;
+      }
+
+    return res;
+  }
+
   // prendre 100 ordres aléatoires, fiare un aordre aléatoire. puis mettre 1er noeud, 2e noeud etc. S'i lcouvre une arête. Puis refoire une passe dessus pour voir si c'ets mieux
   // puis refaire un autre ordre etc. 1 million de fois.
 
@@ -421,6 +445,7 @@ public class DefaultTeam {
           poubelle.add(p);
           p = degreMax(reste, edgeThreshold);
         }
+
         if (!couvertureEnsDom.containsAll(voisins(p, points, edgeThreshold)) || !couvertureEnsDom.contains(p)) {
           ensDom.add(p);
           voisins = voisins(p, reste, edgeThreshold);
@@ -440,7 +465,8 @@ public class DefaultTeam {
     return result;
   }
 
-  /*private ArrayList<Point> methode4(ArrayList<Point> points, int edgeThreshold){
+  /* Methode principale :  enlever les noeuds de plus haut degré au début en random sur les plus hauts noeuds. . */
+  private ArrayList<Point> methode33(ArrayList<Point> points, int edgeThreshold){
     ArrayList<Point> ensDom =  new ArrayList<Point>();
     ArrayList<Point> couvertureEnsDom =  new ArrayList<Point>();
     ArrayList<Point> reste = (ArrayList<Point>) points.clone();
@@ -450,7 +476,7 @@ public class DefaultTeam {
     ArrayList<Point> poubelle = new ArrayList<Point>();
     Point p;
 
-    for (int t=0; t<50; t++) {
+    for (int t=0; t<100; t++) {
       ensDom=new ArrayList<Point>();
       couvertureEnsDom=new ArrayList<Point>();
       reste = (ArrayList<Point>) points.clone();
@@ -458,14 +484,15 @@ public class DefaultTeam {
       int i = 0;
       while (!estEnsembleDominant(ensDom, points, edgeThreshold)) {
         i++;
-        if(reste.isEmpty()) {
-          reste.addAll(poubelle);
-          poubelle=new ArrayList<Point>();
-        }
-        p = degreMin(reste, edgeThreshold);
 
-        for(int j=reste.size()-1; j >= 0; j++)
-          ;
+        p = degreMax(reste, edgeThreshold);
+
+        if (reste.size()>1 && new Random(System.nanoTime()).nextInt(10) < 5 && i < 10) {
+          reste.remove(p);
+          p = degreMax(reste, edgeThreshold);
+          reste.add(p);
+        }
+
         if (!couvertureEnsDom.containsAll(voisins(p, points, edgeThreshold)) || !couvertureEnsDom.contains(p)) {
           ensDom.add(p);
           voisins = voisins(p, reste, edgeThreshold);
@@ -483,12 +510,120 @@ public class DefaultTeam {
     }
 
     return result;
-  }*/
+  }
+
+  private ArrayList<Point> methode5(ArrayList<Point> points, int edgeThreshold){
+    ArrayList<Point> ensDom =  new ArrayList<Point>();
+    ArrayList<Point> couvertureEnsDom =  new ArrayList<Point>();
+    ArrayList<Point> reste = (ArrayList<Point>) points.clone();
+    ArrayList<Point> voisins = new ArrayList<>();
+    ArrayList<Point> result = (ArrayList<Point>) points.clone();
+
+    ArrayList<Point> poubelle = new ArrayList<Point>();
+    Point p, q;
+
+    for (int t=0; t<100; t++) {
+      ensDom=new ArrayList<Point>();
+      couvertureEnsDom=new ArrayList<Point>();
+      reste = (ArrayList<Point>) points.clone();
+
+      for(int i=reste.size()-1; i>=0 ; i--){
+        if(degre(p=reste.get(i), reste, edgeThreshold)==0) {
+          ensDom.add(p);
+          couvertureEnsDom.add(p);
+        }
+      }
+
+      for(int i=reste.size()-1; i>=0 ; i--){
+        if(degre(p=reste.get(i), reste, edgeThreshold)==1) {
+          q=voisins(p, reste, edgeThreshold).get(0);
+          ensDom.add(q);
+          couvertureEnsDom.add(p);
+          couvertureEnsDom.add(q);
+        }
+      }
+
+      reste.removeAll(couvertureEnsDom);
+
+      int i = 0;
+      while (!estEnsembleDominant(ensDom, points, edgeThreshold)) {
+        i++;
+        if (reste.isEmpty()) {
+          reste.addAll(poubelle);
+          poubelle = new ArrayList<Point>();
+        }
+        p = degreMin(reste, edgeThreshold);
+
+        voisins = voisins(p, reste, edgeThreshold);
+        System.out.println(voisins.size());
+        q = degreMax(voisins, reste, edgeThreshold);
+
+        ensDom.add(q);
+        couvertureEnsDom.addAll(voisins(q, reste, edgeThreshold));
+        couvertureEnsDom.add(q);
+        reste.removeAll(couvertureEnsDom);
+      }
+
+      //System.out.println(numeroDeGraphe+") RES : "+result.size()+ " CURR : " +ensDom.size()+ " ITER :" +t);
+      if (result.size() > ensDom.size())
+        result = ensDom;
+    }
+
+    return result;
+  }
+
+  private ArrayList<Point> methode4(ArrayList<Point> points, int edgeThreshold){
+    ArrayList<Point> ensDom =  new ArrayList<Point>();
+    ArrayList<Point> couvertureEnsDom =  new ArrayList<Point>();
+    ArrayList<Point> reste = (ArrayList<Point>) points.clone();
+    ArrayList<Point> voisins = new ArrayList<>();
+    ArrayList<Point> result = (ArrayList<Point>) points.clone();
+
+    ArrayList<Point> poubelle = new ArrayList<Point>();
+    Point p, q, qmax=null;
+
+    // faire séparateurs.
+    for (int t=0; t<50; t++) {
+      ensDom=new ArrayList<Point>();
+      couvertureEnsDom=new ArrayList<Point>();
+      reste = (ArrayList<Point>) points.clone();
+
+      int i = 0;
+      while (!estEnsembleDominant(ensDom, points, edgeThreshold)) {
+        i++;
+        if(reste.isEmpty()) {
+          reste.addAll(poubelle);
+          poubelle=new ArrayList<Point>();
+        }
+        p = degreMin(reste, edgeThreshold);
+
+        ensDom.add(p);
+        for(int j=ensDom.size()-1; j >= 0; j++)
+          if((q=ensDom.get(j)).distance(p)<edgeThreshold*2 && q.distance(p)>qmax.distance(p)) ;
+        /*if (!couvertureEnsDom.containsAll(voisins(p, points, edgeThreshold)) || !couvertureEnsDom.contains(p)) {
+          ensDom.add(p);
+          voisins = voisins(p, reste, edgeThreshold);
+          couvertureEnsDom.addAll(voisins);
+          couvertureEnsDom.add(p);
+          reste.removeAll(voisins);
+        }*/
+
+        reste.remove(p);
+      }
+
+      //System.out.println(numeroDeGraphe+") RES : "+result.size()+ " CURR : " +ensDom.size()+ " ITER :" +t);
+      if (result.size() > ensDom.size())
+        result = ensDom;
+    }
+
+    return result;
+  }
 
   public ArrayList<Point> calculDominatingSet(ArrayList<Point> points, int edgeThreshold) {
     ArrayList<Point> result = (ArrayList<Point>)points.clone();
 
-    result = methode3(points, edgeThreshold);
+    //result = methode3(points, edgeThreshold);
+    result = methode5(points, edgeThreshold);
 
     ArrayList<Point> tmp;
     do {
