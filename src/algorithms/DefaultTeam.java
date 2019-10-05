@@ -22,9 +22,10 @@ public class DefaultTeam {
   private ArrayList<Point> voisins(Point p, ArrayList<Point> points, int edgeThreshold) {
     ArrayList<Point> result = new ArrayList<Point>();
 
-    for (Point point : points)
+    for (Point point : points) {
       if (estArete(p, point, edgeThreshold) && !point.equals(p))
         result.add(point);
+    }
 
     return result;
   }
@@ -35,9 +36,10 @@ public class DefaultTeam {
 
     for (int i = 0; i < ensembleDominant.size(); i++) {
       p = ensembleDominant.get(i);
-      pointsCPY.remove(p);
       pointsCPY.removeAll(voisins(p, pointsCPY, edgeThreshold));
+      pointsCPY.remove(p);
     }
+
     return pointsCPY.size() == 0;
   }
 
@@ -309,7 +311,7 @@ public class DefaultTeam {
 
     Point p;
 
-    for(int t=0; t<1000000; t++) {
+    for(int t=0; t<100; t++) {
       result = ensDom;
       couvertureEnsDom =  new ArrayList<Point>();
       reste = (ArrayList<Point>) points.clone();
@@ -473,8 +475,7 @@ public class DefaultTeam {
     ArrayList<Point> voisins = new ArrayList<>();
     ArrayList<Point> result = (ArrayList<Point>) points.clone();
 
-    ArrayList<Point> poubelle = new ArrayList<Point>();
-    Point p;
+    Point p, ptmp;
 
     for (int t=0; t<100; t++) {
       ensDom=new ArrayList<Point>();
@@ -487,21 +488,19 @@ public class DefaultTeam {
 
         p = degreMax(reste, edgeThreshold);
 
-        if (reste.size()>1 && new Random(System.nanoTime()).nextInt(10) < 5 && i < 10) {
+        if (reste.size()>1 && new Random(System.nanoTime()).nextInt(10) < 5 && i < 100) {
+          ptmp=p;
           reste.remove(p);
           p = degreMax(reste, edgeThreshold);
-          reste.add(p);
+          reste.add(ptmp);
         }
 
-        if (!couvertureEnsDom.containsAll(voisins(p, points, edgeThreshold)) || !couvertureEnsDom.contains(p)) {
-          ensDom.add(p);
-          voisins = voisins(p, reste, edgeThreshold);
-          couvertureEnsDom.addAll(voisins);
-          couvertureEnsDom.add(p);
-          reste.removeAll(voisins);
-        }
-
+        ensDom.add(p);
+        voisins = voisins(p, reste, edgeThreshold);
+        reste.removeAll(voisins);
         reste.remove(p);
+        couvertureEnsDom.addAll(voisins);
+        couvertureEnsDom.add(p);
       }
 
       //System.out.println(numeroDeGraphe+") RES : "+result.size()+ " CURR : " +ensDom.size()+ " ITER :" +t);
@@ -623,14 +622,14 @@ public class DefaultTeam {
     ArrayList<Point> result = (ArrayList<Point>)points.clone();
 
     //result = methode3(points, edgeThreshold);
-    result = methode5(points, edgeThreshold);
+    result = methode33(points, edgeThreshold);
 
     ArrayList<Point> tmp;
-    do {
+    /*do {
       tmp = (ArrayList<Point>)result.clone();
       supprime1Point(result, points, edgeThreshold);
       System.out.println("1 On retire "+(tmp.size()-result.size()));
-    } while(tmp.size()!=result.size());
+    } while(tmp.size()!=result.size());*/
 
     do {
       tmp = (ArrayList<Point>)result.clone();
@@ -638,11 +637,11 @@ public class DefaultTeam {
       System.out.println("2 On retire "+(tmp.size()-result.size()));
     } while(tmp.size()!=result.size());
 
-    do {
+    /*do {
       tmp = (ArrayList<Point>)result.clone();
       localSearch32(result, points, edgeThreshold);
       System.out.println("3 On retire "+(tmp.size()-result.size()));
-    } while(tmp.size()!=result.size());
+    } while(tmp.size()!=result.size());*/
 
 
     int score = score("graphe"+numeroDeGraphe);
